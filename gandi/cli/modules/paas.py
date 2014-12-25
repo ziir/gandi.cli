@@ -172,7 +172,6 @@ class Paas(GandiModule, SshkeyHelper):
             cls.display_progress(result)
             cls.echo('Your PaaS instance %s has been created.' % name)
 
-        cls.init_conf(name, created=not background, vhosts=vhosts)
         return result
 
     @classmethod
@@ -219,24 +218,46 @@ class Paas(GandiModule, SshkeyHelper):
         cls.execute(access)
 
     @classmethod
-    def init_conf(cls, id, vhost=None, created=True, vhosts=None,
-                  background=False):
-        """ Initialize local configuration with PaaS information. """
-        paas = Paas.info(cls.usable_id(id))
-        cls.debug('save PaaS instance information to local configuration')
+    def init_vhost(cls, vhost, created=True, id=None, paas=None):
+        """Initialize vhost directory and create a local configuration file."""
+        assert id or paas
+        if not paas:
+            paas = Paas.info(cls.usable_id(id))
 
-        if vhost and not vhosts:
-            vhosts = [vhost]
-        if not vhosts:
-            if 'php' not in paas['type']:
-                vhost = 'default'
-            elif paas['vhosts']:
-                vhosts = [vht['name'] for vht in paas['vhosts']]
-            else:
+        if 'php' not in paas['type']:
+            vhost = 'default'
+
+        git_server = paas['git_server']
+        # hack for dev
+        if 'dev' in paas['console']:
+            git_server = 'git.hosting.dev.gandi.net'
+        paas_access = '%s@%s' % (paas['user'], git_server)
+        if created:
+            repo_path = os.path.join(os.getcwd(), vhost)
+            if os.path.exists(repo_path):
+                cls.echo('%s already exists, please remove it before cloning' %
+                         repo_path)
                 return
 
-        for vhost in vhosts:
-            Vhost.create(paas, vhost, True, background)
+            init_git = cls.execute('git clone ssh+git://%s/%s.git' %
+                                   (paas_access, vhost))
+            if not init_git:
+                cls.echo('An error has occurred during git clone of instance.')
+                return
+        else:
+            cls.echo('You should init your git repo when the paas is created, '
+                     'type : ')
+            cls.echo('gandi paas clone %s' % vhost)
+            return
+
+        # go into directory to save configuration file in this directory
+        current_path = os.getcwd()
+        os.chdir(os.path.join(current_path, vhost))
+        cls.configure(False, 'paas.user', paas['user'])
+        cls.configure(False, 'paas.name', paas['name'])
+        cls.configure(False, 'paas.deploy_git_host', '%s.git' % vhost)
+        cls.configure(False, 'paas.access', paas_access)
+        os.chdir(current_path)
 
     @classmethod
     def usable_id(cls, id):
