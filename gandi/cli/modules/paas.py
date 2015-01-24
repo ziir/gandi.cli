@@ -282,12 +282,10 @@ class Paas(GandiModule, SshkeyHelper):
     @classmethod
     def from_vhost(cls, vhost):
         """Retrieve paas instance id associated to a vhost."""
-        result = Vhost().list()
-        paas_hosts = {}
-        for host in result:
-            paas_hosts[host['name']] = host['paas_id']
-
-        return paas_hosts.get(vhost)
+        result = cls.list({'vhost': vhost})
+        if not result:
+            return None
+        return result[0]['id']
 
     @classmethod
     def from_hostname(cls, hostname):
