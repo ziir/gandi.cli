@@ -3,7 +3,7 @@
 import click
 from click.exceptions import UsageError
 
-from gandi.cli.core.cli import cli
+from gandi.cli.core.cli import cli, warn_deprecated
 from gandi.cli.core.utils import output_paas, output_generic, randomstring
 from gandi.cli.core.params import (
     pass_gandi, DATACENTER, SNAPSHOTPROFILE_PAAS, PAAS_TYPE, option,
@@ -124,9 +124,10 @@ def delete(gandi, background, force, resource):
 
 
 @cli.command()
+@click.argument('name_arg', required=False)
 @click.option('--name', default=None,
               help='Name of the PaaS instance, will be generated if not '
-                   'provided.')
+                   'provided.', callback=warn_deprecated)
 @option('--size', default='s',
         type=click.Choice(['s', 'm', 'x', 'xl', 'xxl']),
         help='Size of the PaaS instance.')
@@ -156,7 +157,7 @@ def delete(gandi, background, force, resource):
 @pass_gandi
 def create(gandi, name, size, type, quantity, duration, datacenter, vhosts,
            password, snapshotprofile, background, sshkey, ssl, private_key,
-           poll_cert):
+           poll_cert, name_arg):
     """Create a new PaaS instance and initialize associated git repository.
 
     you can specify a configuration entry named 'sshkey' containing
@@ -177,8 +178,7 @@ def create(gandi, name, size, type, quantity, duration, datacenter, vhosts,
         password = click.prompt('password', hide_input=True,
                                 confirmation_prompt=True)
 
-    if not name:
-        name = randomstring('vm')
+    name = name or name_arg or randomstring('vm')
 
     if vhosts and not gandi.hostedcert.activate_ssl(vhosts,
                                                     ssl,
