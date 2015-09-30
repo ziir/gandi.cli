@@ -471,6 +471,7 @@ Creating your disk.
 
         self.assertEqual(re.sub(r'\[#+\]', '[###]',
                                 result.output.strip()), """\
+Warning: --name is soon a deprecated parameter, see documentation
 Creating your disk.
 \rProgress: [###] 100.00%  00:00:00""")
         self.assertEqual(result.exit_code, 0)

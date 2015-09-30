@@ -127,8 +127,8 @@ def delete(gandi, background, force, resource):
 @cli.command()
 @click.argument('name_arg', required=False)
 @click.option('--name', required=False, help='Name of the vlan.',
-              callback=warn_deprecated
-@option('--datacenter', type=DATACENTER, default='LU-BI1',
+              callback=warn_deprecated)
+@click.option('--datacenter', type=DATACENTER, default='LU-BI1',
         help='Datacenter where the vlan will be spawned.')
 @click.option('--subnet', help='The vlan subnet.')
 @click.option('--gateway', help='The vlan gateway.')
