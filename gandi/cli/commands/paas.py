@@ -87,7 +87,7 @@ def info(gandi, resource, stat):
 
 
 @cli.command()
-@click.argument('vhost', required=False)
+@click.argument('vhost', required=False, default='default')
 @pass_gandi
 def clone(gandi, vhost):
     """Clone a remote vhost in a local git repository."""
@@ -137,6 +137,18 @@ def clone(gandi, vhost):
         if not vhost:
             vhost = gandi.get('paas.deploy_git_host').replace('.git', '')
         gandi.execute('git clone ssh+git://%s/%s.git' % (paas_access, vhost))
+
+
+@cli.command()
+@click.option('--vhost', default='default',
+              help="Add a remote for a given instance's vhost to the local git repository")
+@click.option('--remote', default='gandi',
+              help="Specify the remote's name")
+@click.argument('name', required=True)
+@pass_gandi
+def attach(gandi, name, vhost, remote):
+    """Add remote for an instance's default vhost to the local git repository."""
+    return gandi.paas.attach(name, vhost, remote)
 
 
 @cli.command(root=True)

@@ -11,6 +11,7 @@ class Paas(GandiModule, SshkeyHelper):
 
     """ Module to handle CLI commands.
 
+    $ gandi paas attach
     $ gandi paas clone
     $ gandi paas console
     $ gandi paas create
@@ -27,6 +28,17 @@ class Paas(GandiModule, SshkeyHelper):
     def type_list(cls, options=None):
         """List type of PaaS instances."""
         return cls.safe_call('paas.type.list', options)
+
+    @classmethod
+    def attach(cls, vhost):
+        """
+        Attach an instance to a remote from the local
+        repository.
+        """
+        remote_name = 'gandi'
+        remote_url = cls.git_remote(vhost)
+
+        return cls.execute('git remote add %s %s' % (remote_name, remote_url,))
 
     @classmethod
     def list(cls, options=None):
