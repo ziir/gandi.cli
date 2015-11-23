@@ -11,6 +11,7 @@ class Paas(GandiModule, SshkeyHelper):
 
     """ Module to handle CLI commands.
 
+    $ gandi paas attach
     $ gandi paas clone
     $ gandi paas console
     $ gandi paas create
@@ -27,6 +28,50 @@ class Paas(GandiModule, SshkeyHelper):
     def type_list(cls, options=None):
         """List type of PaaS instances."""
         return cls.safe_call('paas.type.list', options)
+
+    @classmethod
+    def clone(cls, name, vhost, directory):
+        """Clone a PaaS instance's vhost into a local git repository."""
+        paas_info = cls.info(name)
+
+        git_server = paas_info['git_server']
+        paas_access = '%s@%s' % (paas_info['user'], git_server)
+            paas_info = cls.info(name)
+
+        init_git = cls.execute('git clone ssh+git://%s/%s.git %s'
+                               % (paas_access, vhost, directory))
+        if not init_git:
+            cls.echo('An error has occurred during git clone of instance.')
+            return
+            git_server = paas_info['git_server']
+            paas_access = '%s@%s' % (paas_info['user'], git_server)
+
+        return cls.save_config(paas_info, paas_access, vhost, directory)
+
+    @classmethod
+    def attach(cls, name, vhost, remote_name):
+        """Attach an instance's vhost to a remote from the local repository."""
+        remote_url = cls.git_remote(name, vhost)
+
+        ret = cls.execute('git remote add %s %s' % (remote_name, remote_url,))
+
+        if ret:
+            cls.echo('Adding remote `%s` to your local git repository.'
+                     % (remote_name))
+            cls.echo('Use `git push %s master` to push your code to the '
+                     'instance.' % (remote_name))
+            cls.echo('Then `$ gandi deploy` to build and deploy your '
+                     'application.')
+
+            paas_info = cls.info(name)
+
+            git_server = paas_info['git_server']
+            # hack for dev
+            if 'dev' in paas_info['console']:
+                git_server = 'git.hosting.dev.gandi.net'
+            paas_access = '%s@%s' % (paas_info['user'], git_server)
+
+            return cls.save_config(paas_info, paas_access, vhost,)
 
     @classmethod
     def save_config(cls, paas_info, paas_access, vhost, directory=None):
@@ -50,7 +95,6 @@ class Paas(GandiModule, SshkeyHelper):
         paas_info = cls.info(name)
 
         git_server = paas_info['git_server']
-
         paas_access = '%s@%s' % (paas_info['user'], git_server)
 
         return 'ssh+git://%s/%s.git' % (paas_access, vhost)
