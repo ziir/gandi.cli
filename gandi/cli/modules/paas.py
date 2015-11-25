@@ -29,6 +29,17 @@ class Paas(GandiModule, SshkeyHelper):
         return cls.safe_call('paas.type.list', options)
 
     @classmethod
+    def git_remote(cls, name, vhost):
+        """Return git remote for a given PaaS instance."""
+        paas_info = cls.info(name)
+
+        git_server = paas_info['git_server']
+
+        paas_access = '%s@%s' % (paas_info['user'], git_server)
+
+        return 'ssh+git://%s/%s.git' % (paas_access, vhost)
+
+    @classmethod
     def list(cls, options=None):
         """List PaaS instances."""
         return cls.call('paas.list', options)
