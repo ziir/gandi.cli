@@ -1,5 +1,7 @@
 """ PaaS commands module. """
 
+import os
+
 from gandi.cli.core.base import GandiModule
 from gandi.cli.modules.metric import Metric
 from gandi.cli.modules.vhost import Vhost
@@ -66,12 +68,25 @@ class Paas(GandiModule, SshkeyHelper):
             paas_info = cls.info(name)
 
             git_server = paas_info['git_server']
-            # hack for dev
-            if 'dev' in paas_info['console']:
-                git_server = 'git.hosting.dev.gandi.net'
             paas_access = '%s@%s' % (paas_info['user'], git_server)
 
             return cls.save_config(paas_info, paas_access, vhost,)
+
+    @classmethod
+    def clone(cls, name, vhost, directory):
+        """Clone a PaaS instance's vhost into a local git repository."""
+        paas_info = cls.info(name)
+
+        git_server = paas_info['git_server']
+        paas_access = '%s@%s' % (paas_info['user'], git_server)
+
+        init_git = cls.execute('git clone ssh+git://%s/%s.git %s'
+                               % (paas_access, vhost, directory))
+        if not init_git:
+            cls.echo('An error has occurred during git clone of instance.')
+            return
+
+        return cls.save_config(paas_info, paas_access, vhost, directory)
 
     @classmethod
     def save_config(cls, paas_info, paas_access, vhost, directory=None):

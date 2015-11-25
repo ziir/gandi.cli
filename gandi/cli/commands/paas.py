@@ -1,5 +1,7 @@
 """ PaaS instances namespace commands. """
 
+import os
+
 import click
 from click.exceptions import UsageError
 
@@ -85,27 +87,24 @@ def info(gandi, resource, stat):
 
 
 @cli.command()
-@click.argument('vhost', required=False)
+@click.option('--directory', help='Specify the destination directory')
+@click.argument('name', required=True)
+@click.argument('vhost', required=False, default='default')
 @pass_gandi
-def clone(gandi, vhost):
+def clone(gandi, name, vhost, directory):
     """Clone a remote vhost in a local git repository."""
-    paas_access = gandi.get('paas.access')
-    if not vhost and not paas_access:
-        gandi.error('missing VHOST parameter')
-
-    if vhost and not paas_access:
-        paas_info = gandi.paas.info(vhost)
-        gandi.vhost.init_vhost(vhost, paas=paas_info)
+    if vhost != 'default':
+        directory = vhost
     else:
-        paas_access = gandi.get('paas.access')
-        if not vhost:
-            vhost = gandi.get('paas.deploy_git_host').replace('.git', '')
-        gandi.execute('git clone ssh+git://%s/%s.git' % (paas_access, vhost))
+        directory = name if not directory else directory
+
+    return gandi.paas.clone(name, vhost, directory)
 
 
 @cli.command()
 @click.option('--vhost', default='default',
-              help="Add a remote for a given instance's vhost to the local git repository")
+              help="Add a remote for a given instance's vhost to the local "
+              "git repository")
 @click.option('--remote', default='gandi',
               help="Specify the remote's name")
 @click.argument('name', required=True)

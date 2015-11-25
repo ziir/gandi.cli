@@ -163,9 +163,9 @@ ssh 185290@console.dc2.gpaas.net""")
         result = self.invoke_with_exceptions(paas.clone, [])
 
         self.assertEqual(result.output, """\
-Usage: paas clone [OPTIONS] [VHOST]
+Usage: paas clone [OPTIONS] NAME [VHOST]
 
-Error: missing VHOST parameter
+Error: Missing argument "name".
 """)
 
         self.assertEqual(result.exit_code, 2)
@@ -178,7 +178,7 @@ Error: missing VHOST parameter
             result = self.invoke_with_exceptions(paas.clone, ['cli.sexy'])
 
         self.assertEqual(result.output, """\
-git clone ssh+git://185290@git.dc2.gpaas.net/default.git
+git clone ssh+git://185290@git.dc2.gpaas.net/default.git cli.sexy
 """)
 
         self.assertEqual(result.exit_code, 0)
@@ -189,21 +189,6 @@ git clone ssh+git://185290@git.dc2.gpaas.net/default.git
                              'name': 'paas_cozycloud',
                              'user': 185290}}
         self.assertEqual(local_conf, expected)
-
-    def test_clone_conf(self):
-        GandiModule._conffiles['local'] = {
-            'paas': {'access': '185290@git.dc2.gpaas.net',
-                     'deploy_git_host': 'default.git',
-                     'name': 'paas_cozycloud',
-                     'user': 185290}}
-
-        result = self.invoke_with_exceptions(paas.clone, [])
-
-        self.assertEqual(result.output, """\
-git clone ssh+git://185290@git.dc2.gpaas.net/default.git
-""")
-
-        self.assertEqual(result.exit_code, 0)
 
     def test_deploy_no_conf(self):
         result = self.invoke_with_exceptions(paas.deploy, [])
@@ -228,7 +213,6 @@ Error: missing VHOST parameter
 Creating a new vhost.
 \rProgress: [###] 100.00%  00:00:00  \n\
 Your vhost cli.sexy has been created.
-git clone ssh+git://185290@git.dc2.gpaas.net/default.git
 ssh 185290@git.dc2.gpaas.net 'deploy default.git'""")
 
         self.assertEqual(result.exit_code, 0)
@@ -343,8 +327,7 @@ Creating your PaaS instance.
 Your PaaS instance 123456 has been created.
 Creating a new vhost.
 \rProgress: [###] 100.00%  00:00:00  \n\
-Your vhost ploki.fr has been created.
-git clone ssh+git://1185290@git.dc2.gpaas.net/default.git""")
+Your vhost ploki.fr has been created.""")
 
         self.assertEqual(result.exit_code, 0)
 
