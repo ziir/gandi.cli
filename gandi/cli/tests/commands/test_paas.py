@@ -190,21 +190,6 @@ git clone ssh+git://185290@git.dc2.gpaas.net/default.git
                              'user': 185290}}
         self.assertEqual(local_conf, expected)
 
-    def test_clone_conf(self):
-        GandiModule._conffiles['local'] = {
-            'paas': {'access': '185290@git.dc2.gpaas.net',
-                     'deploy_git_host': 'default.git',
-                     'name': 'paas_cozycloud',
-                     'user': 185290}}
-
-        result = self.invoke_with_exceptions(paas.clone, [])
-
-        self.assertEqual(result.output, """\
-git clone ssh+git://185290@git.dc2.gpaas.net/default.git
-""")
-
-        self.assertEqual(result.exit_code, 0)
-
     def test_deploy_no_conf(self):
         result = self.invoke_with_exceptions(paas.deploy, [])
 
