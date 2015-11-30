@@ -163,9 +163,9 @@ ssh 185290@console.dc2.gpaas.net""")
         result = self.invoke_with_exceptions(paas.clone, [])
 
         self.assertEqual(result.output, """\
-Usage: paas clone [OPTIONS] [VHOST]
+Usage: paas clone [OPTIONS] NAME [VHOST]
 
-Error: missing VHOST parameter
+Error: Missing argument "name".
 """)
 
         self.assertEqual(result.exit_code, 2)
@@ -178,7 +178,7 @@ Error: missing VHOST parameter
             result = self.invoke_with_exceptions(paas.clone, ['cli.sexy'])
 
         self.assertEqual(result.output, """\
-git clone ssh+git://185290@git.dc2.gpaas.net/default.git
+git clone ssh+git://185290@git.dc2.gpaas.net/default.git cli.sexy
 """)
 
         self.assertEqual(result.exit_code, 0)
