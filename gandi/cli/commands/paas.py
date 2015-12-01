@@ -1,7 +1,5 @@
 """ PaaS instances namespace commands. """
 
-import os
-
 import click
 from click.exceptions import UsageError
 
@@ -93,37 +91,9 @@ def info(gandi, resource, stat):
 @pass_gandi
 def clone(gandi, name, vhost, directory):
     """Clone a remote vhost in a local git repository."""
-    current_path = os.getcwd()
     directory = name if not directory else directory
 
-    paas_info = gandi.paas.info(name)
-    repo_path = os.path.join(current_path, directory)
-
-    git_server = paas_info['git_server']
-    # hack for dev
-    if 'dev' in paas_info['console']:
-        git_server = 'git.hosting.dev.gandi.net'
-    paas_access = '%s@%s' % (paas_info['user'], git_server)
-
-    if os.path.exists(repo_path):
-        cls.echo('%s already exists, please remove it before cloning' %
-                 repo_path)
-        return
-
-    init_git = gandi.execute('git clone ssh+git://%s/%s.git %s' %
-                            (paas_access, vhost, directory))
-    if not init_git:
-        cls.echo('An error has occurred during git clone of instance.')
-        return
-
-
-    # go into directory to save configuration file in this directory
-    os.chdir(repo_path)
-    gandi.configure(False, 'paas.user', paas_info['user'])
-    gandi.configure(False, 'paas.name', paas_info['name'])
-    gandi.configure(False, 'paas.deploy_git_host', '%s.git' % vhost)
-    gandi.configure(False, 'paas.access', paas_access)
-    os.chdir(current_path)
+    return gandi.paas.clone(name, vhost, directory)
 
 
 @cli.command()

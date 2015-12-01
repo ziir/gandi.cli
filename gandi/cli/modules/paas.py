@@ -1,5 +1,7 @@
 """ PaaS commands module. """
 
+import os
+
 from gandi.cli.core.base import GandiModule
 from gandi.cli.modules.metric import Metric
 from gandi.cli.modules.vhost import Vhost
@@ -46,9 +48,39 @@ class Paas(GandiModule, SshkeyHelper):
         return cls.execute('git remote add %s %s' % (remote_name, remote_url,))
 
     @classmethod
-    def clone(cls, options=None):
+    def clone(cls, name, vhost, directory):
         """Clone a PaaS instance's vhost into a local git repository."""
-        return cls.call('paas.list', options)
+        current_path = os.getcwd()
+
+        paas_info = cls.info(name)
+        repo_path = os.path.join(current_path, directory)
+
+        git_server = paas_info['git_server']
+        # hack for dev
+        if 'dev' in paas_info['console']:
+            git_server = 'git.hosting.dev.gandi.net'
+        paas_access = '%s@%s' % (paas_info['user'], git_server)
+
+        if os.path.exists(repo_path):
+            cls.echo('%s already exists, please remove it before cloning' %
+                     repo_path)
+            return
+
+        init_git = cls.execute('git clone ssh+git://%s/%s.git %s' %
+                                (paas_access, vhost, directory))
+        if not init_git:
+            cls.echo('An error has occurred during git clone of instance.')
+            return
+
+
+        # go into directory to save configuration file in this directory
+        os.chdir(repo_path)
+        cls.configure(False, 'paas.user', paas_info['user'])
+        cls.configure(False, 'paas.name', paas_info['name'])
+        cls.configure(False, 'paas.deploy_git_host', '%s.git' % vhost)
+        cls.configure(False, 'paas.access', paas_access)
+        os.chdir(current_path)
+
 
     @classmethod
     def git_remote(cls, name, vhost):
