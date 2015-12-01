@@ -37,6 +37,12 @@ class Paas(GandiModule, SshkeyHelper):
         """
         remote_url = cls.git_remote(name, vhost)
 
+        cls.echo('Adding remote `%s` to your local git repository.'
+                 % (remote_name))
+        cls.echo('Use `git push %s master` to push your code to the instance.'
+                 % (remote_name))
+        cls.echo('Then `$ gandi deploy` to build and deploy your application.')
+
         return cls.execute('git remote add %s %s' % (remote_name, remote_url,))
 
     @classmethod
