@@ -194,28 +194,12 @@ git clone ssh+git://185290@git.dc2.gpaas.net/default.git cli.sexy
         result = self.invoke_with_exceptions(paas.deploy, [])
 
         self.assertEqual(result.output, """\
-Usage: deploy [OPTIONS] [VHOST]
+Usage: deploy [OPTIONS]
 
-Error: missing VHOST parameter
+Error: Deploy requires a local configuration file.
 """)
 
         self.assertEqual(result.exit_code, 2)
-
-    def test_deploy_no_conf_vhost(self):
-        with mock.patch('gandi.cli.modules.vhost.os.chdir',
-                        create=True) as mock_chdir:
-            mock_chdir.return_value = mock.MagicMock()
-
-            result = self.invoke_with_exceptions(paas.deploy, ['cli.sexy'])
-
-        self.assertEqual(re.sub(r'\[#+\]', '[###]',
-                                result.output.strip()), """\
-Creating a new vhost.
-\rProgress: [###] 100.00%  00:00:00  \n\
-Your vhost cli.sexy has been created.
-ssh 185290@git.dc2.gpaas.net 'deploy default.git'""")
-
-        self.assertEqual(result.exit_code, 0)
 
     def test_delete_unknown(self):
         result = self.invoke_with_exceptions(paas.delete, ['unknown_paas'])

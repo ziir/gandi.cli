@@ -116,19 +116,17 @@ def attach(gandi, name, vhost, remote):
 
 
 @cli.command(root=True)
-@click.argument('vhost', required=False)
+@click.option('--vhost', default='default',
+              help="Specify the vhost to deploy to.")
 @pass_gandi
 def deploy(gandi, vhost):
-    """Deploy code on a remote vhost."""
-    paas_access = gandi.get('paas.access')
-    if not vhost and not paas_access:
-        gandi.error('missing VHOST parameter')
-
-    if vhost and not paas_access:
-        gandi.paas.init_conf(vhost, vhost=vhost)
-
+    """Deploy code on an instance's default remote vhost."""
     paas_access = gandi.get('paas.access')
     deploy_git_host = gandi.get('paas.deploy_git_host')
+
+    if not paas_access:
+        gandi.error("Deploy requires a local configuration file.")
+        return
 
     gandi.execute("ssh %s 'deploy %s'" % (paas_access, deploy_git_host))
 
