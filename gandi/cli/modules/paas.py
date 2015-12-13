@@ -223,7 +223,7 @@ class Paas(GandiModule, SshkeyHelper):
         cls.display_progress(result)
 
     @classmethod
-    def create(cls, name, size, type, quantity, duration, datacenter, vhosts,
+    def create(cls, name, size, type, quantity, duration, datacenter, vhost,
                password, snapshot_profile, background, sshkey):
         """Create a new PaaS instance."""
         if not background and not cls.intty():
@@ -258,7 +258,11 @@ class Paas(GandiModule, SshkeyHelper):
             cls.display_progress(result)
             cls.echo('Your PaaS instance %s has been created.' % name)
 
-        cls.init_conf(name, created=not background, vhosts=vhosts)
+        paas_info = cls.info(name)
+
+        if vhost:
+            Vhost.create(paas_info, vhost, True, background)
+
         return result
 
     @classmethod
@@ -303,26 +307,6 @@ class Paas(GandiModule, SshkeyHelper):
         console_url = Paas.info(cls.usable_id(id))['console']
         access = 'ssh %s' % console_url
         cls.execute(access)
-
-    @classmethod
-    def init_conf(cls, id, vhost=None, created=True, vhosts=None,
-                  background=False):
-        """ Initialize local configuration with PaaS information. """
-        paas = Paas.info(cls.usable_id(id))
-        cls.debug('save PaaS instance information to local configuration')
-
-        if vhost and not vhosts:
-            vhosts = [vhost]
-        if not vhosts:
-            if 'php' not in paas['type']:
-                vhost = 'default'
-            elif paas['vhosts']:
-                vhosts = [vht['name'] for vht in paas['vhosts']]
-            else:
-                return
-
-        for vhost in vhosts:
-            Vhost.create(paas, vhost, True, background)
 
     @classmethod
     def usable_id(cls, id):

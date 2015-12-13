@@ -186,8 +186,8 @@ def delete(gandi, background, force, resource):
         help='Number of month, suffixed with m.')
 @option('--datacenter', type=DATACENTER, default='LU-BI1',
         help='Datacenter where the PaaS will be spawned.')
-@click.option('--vhosts', default=None, multiple=True,
-              help='List of virtual hosts to be linked to the instance.')
+@click.option('--vhost', default=None,
+              help='Virtual host to be linked to the instance.')
 @click.option('--ssl', help='Get ssl on that vhost.', is_flag=True)
 @click.option('--pk', '--private-key',
               help='Private key used to generate the ssl Certificate.')
@@ -201,7 +201,7 @@ def delete(gandi, background, force, resource):
 @option('--sshkey', multiple=True,
         help='Authorize ssh authentication for the given ssh key.')
 @pass_gandi
-def create(gandi, name, size, type, quantity, duration, datacenter, vhosts,
+def create(gandi, name, size, type, quantity, duration, datacenter, vhost,
            password, snapshotprofile, background, sshkey, ssl, private_key,
            poll_cert):
     """Create a new PaaS instance and initialize associated git repository.
@@ -227,14 +227,14 @@ def create(gandi, name, size, type, quantity, duration, datacenter, vhosts,
     if not name:
         name = randomstring('paas')
 
-    if vhosts and not gandi.hostedcert.activate_ssl(vhosts,
+    if vhost and not gandi.hostedcert.activate_ssl(vhost,
                                                     ssl,
                                                     private_key,
                                                     poll_cert):
         return
 
     result = gandi.paas.create(name, size, type, quantity, duration,
-                               datacenter, vhosts, password,
+                               datacenter, vhost, password,
                                snapshotprofile, background, sshkey)
     return result
 
