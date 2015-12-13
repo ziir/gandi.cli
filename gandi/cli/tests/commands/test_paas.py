@@ -163,7 +163,7 @@ ssh 185290@console.dc2.gpaas.net""")
         result = self.invoke_with_exceptions(paas.clone, [])
 
         self.assertEqual(result.output, """\
-Usage: paas clone [OPTIONS] NAME [VHOST]
+Usage: paas clone [OPTIONS] NAME
 
 Error: Missing argument "name".
 """)

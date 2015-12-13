@@ -88,8 +88,8 @@ def info(gandi, resource, stat):
 
 @cli.command()
 @click.option('--directory', help='Specify the destination directory')
+@click.option('--vhost', required=False, default='default')
 @click.argument('name', required=True)
-@click.argument('vhost', required=False, default='default')
 @pass_gandi
 def clone(gandi, name, vhost, directory):
     """Clone a remote vhost in a local git repository."""
