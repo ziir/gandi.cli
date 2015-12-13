@@ -82,11 +82,8 @@ class Paas(GandiModule, SshkeyHelper):
 
         init_git = cls.execute('git clone ssh+git://%s/%s.git %s'
                                % (paas_access, vhost, directory))
-        if not init_git:
-            cls.echo('An error has occurred during git clone of instance.')
-            return
-
-        return cls.save_config(paas_info, paas_access, vhost, directory)
+        if init_git:
+            return cls.save_config(paas_info, paas_access, vhost, directory)
 
     @classmethod
     def save_config(cls, paas_info, paas_access, vhost, directory=None):
