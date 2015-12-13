@@ -73,6 +73,17 @@ class Paas(GandiModule, SshkeyHelper):
             return cls.save_config(paas_info, paas_access, vhost,)
 
     @classmethod
+    def deploy(cls):
+        paas_access = cls.get('paas.access')
+        deploy_git_host = cls.get('paas.deploy_git_host')
+
+        if not paas_access:
+            cls.error("Deploy requires a local configuration file.")
+            return
+
+        cls.execute("ssh %s 'deploy %s'" % (paas_access, deploy_git_host,))
+
+    @classmethod
     def clone(cls, name, vhost, directory):
         """Clone a PaaS instance's vhost into a local git repository."""
         paas_info = cls.info(name)
