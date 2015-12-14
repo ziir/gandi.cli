@@ -36,24 +36,25 @@ class Paas(GandiModule, SshkeyHelper):
         """Clone a PaaS instance's vhost into a local git repository."""
         paas_info = cls.info(name)
 
-        git_server = paas_info['git_server']
-        paas_access = '%s@%s' % (paas_info['user'], git_server)
-            paas_info = cls.info(name)
+        paas_access = '%s@%s' % (paas_info['user'], paas_info['git_server'])
 
-        init_git = cls.execute('git clone ssh+git://%s/%s.git %s'
-                               % (paas_access, vhost, directory))
-        if not init_git:
-            cls.echo('An error has occurred during git clone of instance.')
-            return
-            git_server = paas_info['git_server']
-            paas_access = '%s@%s' % (paas_info['user'], git_server)
+        remote_url = 'ssh+git://%s/%s.git' % (paas_access, vhost)
 
-        return cls.save_config(paas_info, paas_access, vhost, directory)
+        init_git = cls.execute('git clone %s %s'
+                               % (remote_url, directory))
+        if init_git:
+            return cls.save_config(paas_info, paas_access, vhost, directory)
 
     @classmethod
     def attach(cls, name, vhost, remote_name):
         """Attach an instance's vhost to a remote from the local repository."""
-        remote_url = cls.git_remote(name, vhost)
+        paas_access = cls.get('paas_access')
+
+        if not paas_access:
+            paas_info = cls.info(name)
+            paas_access = '%s@%s' % (paas_info['user'], paas_info['git_server'])
+
+        remote_url = 'ssh+git://%s/%s.git' % (paas_access, vhost)
 
         ret = cls.execute('git remote add %s %s' % (remote_name, remote_url,))
 
@@ -64,11 +65,6 @@ class Paas(GandiModule, SshkeyHelper):
                      'instance.' % (remote_name))
             cls.echo('Then `$ gandi deploy` to build and deploy your '
                      'application.')
-
-            paas_info = cls.info(name)
-
-            git_server = paas_info['git_server']
-            paas_access = '%s@%s' % (paas_info['user'], git_server)
 
             return cls.save_config(paas_info, paas_access, vhost,)
 
@@ -89,10 +85,13 @@ class Paas(GandiModule, SshkeyHelper):
         paas_info = cls.info(name)
 
         git_server = paas_info['git_server']
-        paas_access = '%s@%s' % (paas_info['user'], git_server)
+        user = paas_info['user']
 
-        init_git = cls.execute('git clone ssh+git://%s/%s.git %s'
-                               % (paas_access, vhost, directory))
+        paas_access = '%s@%s' % (user, git_server)
+        git_remote = 'ssh+git://%s/%s.git' % (paas_access, vhost)
+
+        init_git = cls.execute('git clone %s %s'
+                               % (git_remote, directory,))
         if init_git:
             return cls.save_config(paas_info, paas_access, vhost, directory)
 
@@ -111,16 +110,6 @@ class Paas(GandiModule, SshkeyHelper):
 
         if directory:
             os.chdir(current_path)
-
-    @classmethod
-    def git_remote(cls, name, vhost):
-        """Return git remote for a given PaaS instance."""
-        paas_info = cls.info(name)
-
-        git_server = paas_info['git_server']
-        paas_access = '%s@%s' % (paas_info['user'], git_server)
-
-        return 'ssh+git://%s/%s.git' % (paas_access, vhost)
 
     @classmethod
     def list(cls, options=None):
