@@ -29,6 +29,22 @@ class Paas(GandiModule, SshkeyHelper):
         return cls.safe_call('paas.type.list', options)
 
     @classmethod
+    def save_config(cls, paas_info, paas_access, vhost, directory=None):
+        """Save paas configuration in local directory."""
+
+        if directory:
+            current_path = os.getcwd()
+            os.chdir(directory)
+
+        cls.configure(False, 'paas.user', paas_info['user'])
+        cls.configure(False, 'paas.name', paas_info['name'])
+        cls.configure(False, 'paas.deploy_git_host', '%s.git' % vhost)
+        cls.configure(False, 'paas.access', paas_access)
+
+        if directory:
+            os.chdir(current_path)
+
+    @classmethod
     def git_remote(cls, name, vhost):
         """Return git remote for a given PaaS instance."""
         paas_info = cls.info(name)
